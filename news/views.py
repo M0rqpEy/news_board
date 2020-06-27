@@ -1,8 +1,14 @@
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly,
+    IsAuthenticated
+)
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from rest_framework.views import APIView
+from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.db.models import F
 
 from .permissions import IsOwnerOrReadOnly
 from .models import Post, Comment
@@ -24,6 +30,18 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     lookup_url_kwarg = 'post_id'
     permission_classes = [IsOwnerOrReadOnly]
+
+
+class PostUpvoteView(APIView):
+    allowed_methods = ['POST']
+
+    def post(self, request, **kwargs):
+        post_id = self.kwargs["post_id"]
+        post = get_object_or_404(Post, id=post_id)
+        post.vote = F('vote')+1
+        post.save(update_fields=["vote"])
+        return Response({"detail": "Success"}, status=status.HTTP_200_OK)
+
 
 
 class CommentListView(ListCreateAPIView):

@@ -8,6 +8,10 @@ urlpatterns = [
          views.PostDetailView.as_view(),
          name='post_detail'),
     path('posts/', views.PostListView.as_view(), name='posts_list'),
+    #Upvote
+    path('posts/<int:post_id>/upvote',
+         views.PostUpvoteView.as_view(),
+         name='post_upvote'),
     #Comments
     path('posts/<int:post_id>/comments/',
          views.CommentListView.as_view(),

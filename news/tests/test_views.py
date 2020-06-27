@@ -47,6 +47,7 @@ class PostListViewTests(APITestCase):
         self.assertEqual(Post.objects.first().author,  self.author)
         self.assertEqual(Post.objects.first().title,  'title#1')
 
+
 class PostDetailViewTests(APITestCase):
 
     def setUp(self):
@@ -120,6 +121,12 @@ class PostDetailViewTests(APITestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Post.objects.count(), 0)
 
+    def test_can_non_logined_user_upvote(self):
+        post1 = Post.objects.create(
+            title='post1', link='http://url.com', author=self.author
+        )
+        response = self.client.post(reverse('post_upvote', args=[post1.id]))
+        self.assertEqual(Post.objects.first().vote, 1)
 
 class CommentListViewTests(APITestCase):
 
