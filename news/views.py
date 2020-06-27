@@ -2,10 +2,11 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from django.shortcuts import get_object_or_404
 
 from .permissions import IsOwnerOrReadOnly
 from .models import Post, Comment
-from .serializers import PostSerializer
+from .serializers import PostSerializer, CommentSerializer
 
 
 # Create your views here.
@@ -24,3 +25,12 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
     lookup_url_kwarg = 'post_id'
     permission_classes = [IsOwnerOrReadOnly]
 
+
+class CommentListView(ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        post = get_object_or_404(Post, id=self.kwargs['post_id'])
+        serializer.save(author=self.request.user, post=post)
