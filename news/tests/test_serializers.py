@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 
 from ..models import Post, Comment
-from ..serializers import PostSerializer
+from ..serializers import PostSerializer, CommentSerializer
 
 
 class PostSerializerTests(APITestCase):
@@ -17,6 +17,25 @@ class PostSerializerTests(APITestCase):
     def test_correct_fields(self):
         data = self.serializer.data
         self.assertEqual(list(data.keys()), ['title', 'link', 'created', 'vote', 'author_name'])
+
+
+    def test_author_name_field_content(self):
+        data = self.serializer.data
+        self.assertEqual(data['author_name'], self.user1.username)
+
+
+class CommmentSerializerTests(APITestCase):
+
+    def setUp(self):
+        self.user1 = get_user_model().objects.create_user(username='user1', password='password')
+        self.post1 = Post.objects.create(title='post1', link='url.com', author=self.user1)
+        self.comment1 = Comment.objects.create(author=self.user1, content='auth', post=self.post1)
+        self.serializer = CommentSerializer(instance=self.comment1)
+
+
+    def test_correct_fields(self):
+        data = self.serializer.data
+        self.assertEqual(list(data.keys()), ['author_name', 'content', 'created'])
 
 
     def test_author_name_field_content(self):
