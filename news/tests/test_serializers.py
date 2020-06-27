@@ -16,7 +16,7 @@ class PostSerializerTests(APITestCase):
 
     def test_correct_fields(self):
         data = self.serializer.data
-        self.assertEqual(list(data.keys()), ['title', 'link', 'created', 'vote', 'author_name'])
+        self.assertEqual(list(data.keys()), ['id','title', 'link', 'created', 'vote', 'author_name'])
 
 
     def test_author_name_field_content(self):
@@ -35,7 +35,7 @@ class CommmentSerializerTests(APITestCase):
 
     def test_correct_fields(self):
         data = self.serializer.data
-        self.assertEqual(list(data.keys()), ['author_name', 'content', 'created'])
+        self.assertEqual(list(data.keys()), ['id', 'author_name', 'content', 'created'])
 
 
     def test_author_name_field_content(self):
