@@ -8,7 +8,6 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        # title, link, creation date, amount of upvotes, author-name
         fields = ['title', 'link', 'created', 'vote', 'author_name']
 
 
