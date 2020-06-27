@@ -7,6 +7,7 @@ from ..views import (
     PostListView,
     PostDetailView,
     CommentListView,
+    CommentDetailView
 )
 
 
@@ -71,18 +72,6 @@ class PostDetailViewTests(APITestCase):
 
         self.assertEqual(post1.title, response.data['title'])
 
-    def test_partial_update_post_by_non_login_user(self):
-        post1 = Post.objects.create(
-            title='post1', link='http://url.com', author=self.author
-        )
-        response = self.client.patch(
-            reverse('post_detail', args=[post1.id]),
-            data={'title': 'new title'},
-            format='json',
-        )
-
-        self.assertEqual(response.status_code, 403)
-
     def test_full_update_post_by_non_login_user(self):
         post1 = Post.objects.create(
             title='post1', link='http://url.com', author=self.author
@@ -94,21 +83,6 @@ class PostDetailViewTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-
-    def test_partial_update_post_by_logined_user(self):
-        self.client.login(username='me', password='me')
-        post1 = Post.objects.create(
-            title='post1', link='http://url.com', author=self.author
-        )
-        response = self.client.patch(
-            reverse('post_detail', args=[post1.id]),
-            data={'title': 'new title'},
-            format='json',
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(Post.objects.first().author,  self.author)
-        self.assertEqual(Post.objects.first().title,  'new title')
 
     def test_full_update_post_by_logined_user(self):
         self.client.login(username='me', password='me')
@@ -201,102 +175,111 @@ class CommentListViewTests(APITestCase):
         self.assertEqual(Comment.objects.first().content,  'titleasd')
         self.assertEqual(Comment.objects.first().post,  self.post)
 
-# class CommentDetailViewTests(APITestCase):
-#
-#     def setUp(self):
-#         self.client = APIClient()
-#         self.author = get_user_model().objects.create_user(
-#                                             username='me', password='me'
-#         )
-#
-#     def test_resolve_correct_class(self):
-#         post = Post.objects.create(
-#             title='post1', link='url.com', author=self.author
-#         )
-#         class_views = resolve(reverse('post_detail', args=[post.id]))
-#         self.assertEqual(class_views.func.__name__,
-#                          PostDetailView.as_view().__name__
-#         )
-#
-#     def test_get_correct_post_by_id(self):
-#         post1 = Post.objects.create(
-#             title='post1', link='url.com', author=self.author
-#         )
-#         response = self.client.get(reverse('post_detail', args=[post1.id]))
-#
-#         self.assertEqual(post1.title, response.data['title'])
-#
-#     def test_partial_update_post_by_non_login_user(self):
-#         post1 = Post.objects.create(
-#             title='post1', link='http://url.com', author=self.author
-#         )
-#         response = self.client.patch(
-#             reverse('post_detail', args=[post1.id]),
-#             data={'title': 'new title'},
-#             format='json',
-#         )
-#
-#         self.assertEqual(response.status_code, 403)
-#
-#     def test_full_update_post_by_non_login_user(self):
-#         post1 = Post.objects.create(
-#             title='post1', link='http://url.com', author=self.author
-#         )
-#         response = self.client.put(
-#             reverse('post_detail', args=[post1.id]),
-#             data={'title': 'new title', 'link': 'url.com'},
-#             format='json',
-#         )
-#
-#         self.assertEqual(response.status_code, 403)
-#
-#     def test_partial_update_post_by_logined_user(self):
-#         self.client.login(username='me', password='me')
-#         post1 = Post.objects.create(
-#             title='post1', link='http://url.com', author=self.author
-#         )
-#         response = self.client.patch(
-#             reverse('post_detail', args=[post1.id]),
-#             data={'title': 'new title'},
-#             format='json',
-#         )
-#
-#         self.assertEqual(response.status_code, 200)
-#         self.assertEqual(Post.objects.first().author,  self.author)
-#         self.assertEqual(Post.objects.first().title,  'new title')
-#
-#     def test_full_update_post_by_logined_user(self):
-#         self.client.login(username='me', password='me')
-#         post1 = Post.objects.create(
-#             title='post1', link='http://url.com', author=self.author
-#         )
-#         response = self.client.put(
-#             reverse('post_detail', args=[post1.id]),
-#             data={'title': 'new title', 'link': 'http://url1111.com'},
-#             format='json',
-#         )
-#
-#         self.assertEqual(response.status_code, 200)
-#         self.assertEqual(Post.objects.first().author,  self.author)
-#         self.assertEqual(Post.objects.first().title,  'new title')
-#         self.assertEqual(Post.objects.first().link,  'http://url1111.com')
-#
-#     def test_destroy_post_by_non_login_user(self):
-#         post1 = Post.objects.create(
-#             title='post1', link='http://url.com', author=self.author
-#         )
-#         response = self.client.delete(
-#             reverse('post_detail', args=[post1.id]),
-#         )
-#         self.assertEqual(response.status_code, 403)
-#
-#     def test_destroy_post_by_login_user(self):
-#         self.client.login(username='me', password='me')
-#         post1 = Post.objects.create(
-#             title='post1', link='http://url.com', author=self.author
-#         )
-#         response = self.client.delete(
-#             reverse('post_detail', args=[post1.id]),
-#         )
-#         self.assertEqual(response.status_code, 204)
-#         self.assertEqual(Post.objects.count(), 0)
+
+class CommentDetailViewTests(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.author = get_user_model().objects.create_user(
+            username='me', password='me'
+        )
+        self.author_comment = get_user_model().objects.create_user(
+            username='u', password='u'
+        )
+        self.post = Post.objects.create(
+            title='post1', link='url.com', author=self.author
+        )
+
+    def test_resolve_correct_class(self):
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        class_views = resolve(
+            reverse('comment_detail', args=[self.post.id, comment1.id])
+        )
+        self.assertEqual(
+            class_views.func.__name__,
+            CommentDetailView.as_view().__name__
+        )
+
+    def test_get_correct_comment_by_id(self):
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        response = self.client.get(
+            reverse('comment_detail', args=[self.post.id, comment1.id])
+        )
+        self.assertEqual(comment1.content, response.data['content'])
+
+    def test_full_update_post_by_non_login_user(self):
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        response = self.client.put(
+            reverse('comment_detail', args=[self.post.id, comment1.id]),
+            data={'content': 'new con'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_full_update_post_by_logined_user(self):
+        self.client.login(username='u', password='u')
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        response = self.client.put(
+            reverse('comment_detail', args=[self.post.id, comment1.id]),
+            data={'content': 'new con'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.first().author,  self.author_comment)
+        self.assertEqual(Comment.objects.first().content,  'new con')
+        self.assertEqual(Comment.objects.first().post, self.post)
+
+    def test_destroy_post_by_non_login_user(self):
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        response = self.client.delete(
+            reverse('comment_detail', args=[self.post.id, comment1.id]),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_destroy_post_by_login_user(self):
+        self.client.login(username='u', password='u')
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        response = self.client.delete(
+            reverse('comment_detail', args=[self.post.id, comment1.id]),
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(Comment.objects.count(), 0)
+
+    def test_destroy_post_by_login_user_and_not_owner(self):
+        self.client.login(username='me', password='me')
+        comment1 = Comment.objects.create(
+            author=self.author_comment,
+            content='help',
+            post=self.post
+        )
+        response = self.client.delete(
+            reverse('comment_detail', args=[self.post.id, comment1.id]),
+        )
+        self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(response.status_code, 403)

@@ -34,3 +34,12 @@ class CommentListView(ListCreateAPIView):
     def perform_create(self, serializer):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
         serializer.save(author=self.request.user, post=post)
+
+
+class CommentDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentSerializer
+    lookup_url_kwarg = 'comment_id'
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        return Comment.objects.filter(post_id=self.kwargs['post_id'])

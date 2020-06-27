@@ -12,6 +12,9 @@ urlpatterns = [
     path('posts/<int:post_id>/comments/',
          views.CommentListView.as_view(),
          name='comments_list'),
+    path('posts/<int:post_id>/comments/<int:comment_id>',
+         views.CommentDetailView.as_view(),
+         name='comment_detail'),
 ]
 
 

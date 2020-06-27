@@ -5,7 +5,7 @@ from .models import Post, Comment
 
 class PostSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(
-        source='author.username', read_only=True
+        source='author', read_only=True
     )
 
     class Meta:
@@ -15,7 +15,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(
-        source='author.username', read_only=True
+        source='author', read_only=True
     )
 
     class Meta:
