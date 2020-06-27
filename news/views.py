@@ -34,14 +34,18 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
 
 class PostUpvoteView(APIView):
     allowed_methods = ['POST']
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, **kwargs):
         post_id = self.kwargs["post_id"]
-        post = get_object_or_404(Post, id=post_id)
-        post.vote = F('vote')+1
-        post.save(update_fields=["vote"])
-        return Response({"detail": "Success"}, status=status.HTTP_200_OK)
+        post_votes_id = Post.objects.filter(id=post_id).prefetch_related('votes')
 
+        if request.user not in post_votes_id.first().votes.all():
+            post_votes_id.first().votes.add(request.user)
+            return Response({"detail": "Success"}, status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "You cannot upvote twice"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class CommentListView(ListCreateAPIView):

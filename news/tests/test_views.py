@@ -121,12 +121,38 @@ class PostDetailViewTests(APITestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Post.objects.count(), 0)
 
-    def test_can_non_logined_user_upvote(self):
+    def test_cannot_non_logined_user_upvote(self):
         post1 = Post.objects.create(
             title='post1', link='http://url.com', author=self.author
         )
         response = self.client.post(reverse('post_upvote', args=[post1.id]))
-        self.assertEqual(Post.objects.first().vote, 1)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Post.objects.first().votes.count(), 0)
+
+    def test_can_logined_user_upvote(self):
+        self.client.login(username='me', password='me')
+        post1 = Post.objects.create(
+            title='post1', link='http://url.com', author=self.author
+        )
+        response = self.client.post(reverse('post_upvote', args=[post1.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Post.objects.first().votes.count(), 1)
+
+    def test_cannot_logined_user_upvote_twice(self):
+        self.client.login(username='me', password='me')
+        post1 = Post.objects.create(
+            title='post1', link='http://url.com', author=self.author
+        )
+        response = self.client.post(reverse('post_upvote', args=[post1.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Post.objects.first().votes.count(), 1)
+
+        response = self.client.post(reverse('post_upvote', args=[post1.id]))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Post.objects.first().votes.count(), 1)
 
 class CommentListViewTests(APITestCase):
 

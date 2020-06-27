@@ -7,7 +7,12 @@ class Post(models.Model):
     title = models.CharField(max_length=100, unique=True)
     link = models.URLField()
     created = models.DateTimeField(auto_now_add=True)
-    vote = models.PositiveSmallIntegerField(default=0)
+    votes = models.ManyToManyField(
+        get_user_model(),
+        default=0,
+        related_name='posts_vote',
+        blank=True,
+    )
     author = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE, related_name='posts'
     )
