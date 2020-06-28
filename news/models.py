@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # Create your models here.
 class Post(models.Model):
@@ -8,13 +9,13 @@ class Post(models.Model):
     link = models.URLField()
     created = models.DateTimeField(auto_now_add=True)
     votes = models.ManyToManyField(
-        get_user_model(),
+        User,
         default=0,
         related_name='posts_vote',
         blank=True,
     )
     author = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, related_name='posts'
+        User, on_delete=models.CASCADE, related_name='posts'
     )
 
     def __str__(self):
@@ -23,7 +24,7 @@ class Post(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, related_name='comments'
+        User, on_delete=models.CASCADE, related_name='comments'
     )
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True)

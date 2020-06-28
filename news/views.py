@@ -38,13 +38,16 @@ class PostUpvoteView(APIView):
 
     def post(self, request, **kwargs):
         post_id = self.kwargs["post_id"]
-        post_votes_id = Post.objects.filter(id=post_id).prefetch_related('votes')
+        post_votes_id = Post.objects.filter(
+                                    id=post_id
+                                    ).prefetch_related('votes')
 
         if request.user not in post_votes_id.first().votes.all():
             post_votes_id.first().votes.add(request.user)
             return Response({"detail": "Success"}, status=status.HTTP_200_OK)
         return Response(
-            {"detail": "You cannot upvote twice"}, status=status.HTTP_400_BAD_REQUEST
+            {"detail": "You cannot upvote twice"},
+            status=status.HTTP_400_BAD_REQUEST
         )
 
 

@@ -15,15 +15,24 @@ class PostListViewTests(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.author = get_user_model().objects.create_user(username='me', password='me')
+        self.author = get_user_model().objects.create_user(
+            username='me', password='me'
+        )
 
     def test_resolve_correct_class(self):
         class_views = resolve(reverse('posts_list'))
-        self.assertEqual(class_views.func.__name__, PostListView.as_view().__name__)
+        self.assertEqual(
+            class_views.func.__name__,
+            PostListView.as_view().__name__
+        )
 
     def test_get_correct_all_posts(self):
-        post1 = Post.objects.create(title='post1', link='url.com', author=self.author)
-        post2 = Post.objects.create(title='post2', link='url.com', author=self.author)
+        post1 = Post.objects.create(
+            title='post1', link='url.com', author=self.author
+        )
+        post2 = Post.objects.create(
+            title='post2', link='url.com', author=self.author
+        )
         response = self.client.get(reverse('posts_list'))
         self.assertEqual(post1.title, response.data[0]['title'])
         self.assertEqual(post2.title, response.data[1]['title'])
@@ -121,6 +130,15 @@ class PostDetailViewTests(APITestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Post.objects.count(), 0)
 
+
+class PostUpvoteViewTests(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.author = get_user_model().objects.create_user(
+                                            username='me', password='me'
+        )
+
     def test_cannot_non_logined_user_upvote(self):
         post1 = Post.objects.create(
             title='post1', link='http://url.com', author=self.author
@@ -153,6 +171,7 @@ class PostDetailViewTests(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Post.objects.first().votes.count(), 1)
+
 
 class CommentListViewTests(APITestCase):
 

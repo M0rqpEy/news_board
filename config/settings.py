@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 # Application definition
 
@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'news.apps.NewsConfig',
 
 ]
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
